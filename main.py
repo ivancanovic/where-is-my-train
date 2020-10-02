@@ -36,4 +36,4 @@ def whereismytrain():
     <Message>Your train with number """ + str(vehicle)+ """ from """ + str(station[0])+ """ to """ + str(station[1])+ """ has been canceled!</Message>
   </Response>"""
 
-app.run(debug=True, host='0.0.0.0', port=8080)
+# app.run(debug=True, host='0.0.0.0', port=8080)
