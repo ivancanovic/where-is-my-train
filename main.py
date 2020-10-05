@@ -4,55 +4,16 @@ import requests
 import datetime
 from datetime import date
 from pytz import timezone
+import os
 
-app = Flask('bootcamp')
+app = Flask(__name__)
 
-@app.route("/jobs", methods=['GET', 'POST'])
-def jobs():
-  city = request.values['Body']
-  response = requests.get("https://jobs.github.com/positions.json", params={
-    'location': city
-  })
-  data = json.loads(response.content)
-  title = data [0]['title']
-  company = data [0]['company']
-  #job_company = data1['company']
-  return """<?xml version="1.0" encoding="UTF-8"?>
-  <Response>
-    <Message>Job for location """ + city + """ with job title {} in the company {}</Message>
-  </Response>""".format(title,company)
-
-@app.route("/weather", methods=['GET', 'POST'])
-def weather():
-  city = request.values['Body']
-  response = requests.get("http://api.openweathermap.org/data/2.5/weather", params={
-    "q": city,
-    "appid": "93d35ffb3f8c84f93596e1988315631e",
-    "units": "metric"
-  })
-  data = json.loads(response.content)
-  current_temp = data['main']['temp']
-  return """<?xml version="1.0" encoding="UTF-8"?>
-  <Response>
-    <Message>Current temperature in """ + str(city)+ """ is """ + str(current_temp) + """°C</Message>
-  </Response>"""
-
-
-@app.route('/sms', methods=['GET', 'POST'])
-def sms():
-  return """<?xml version="1.0" encoding="UTF-8"?>
-  <Response>
-    <Message>Hello from Bootcamp!</Message>
-  </Response>"""
-
-
-@app.route("/whereismytrain", methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def whereismytrain():
-
   # We will receive two stations as response from Twilio, seperated by blank space, so we need to split those and forward it to API call as two different params
   sms_fetch = request.values['Body']
   station = sms_fetch.split()
-  
+
   # Making sure that we always send in params today's date correctly formated in order to avoid fluding with irelevant data for journeys in near future
   today = date.today()
   journey_date = today.strftime("%d%m%y")
@@ -76,7 +37,7 @@ def whereismytrain():
   arrival_station = data['connection'][0]['arrival']['station']
   vehicle = data['connection'][0]['departure']['vehicleinfo']['shortname']
   departure_time_unix = data['connection'][0]['departure']['time']
-
+  
   # Checking if there is a delay, and there is, converting response from seconds to minutes
   delay_check = int(delay)
   if delay_check != 0:
@@ -103,5 +64,7 @@ def whereismytrain():
   <Response>
     <Message>Your train with number """ + str(vehicle)+ """ from """ + str(station[0])+ """ to """ + str(station[1])+ """ has been canceled!</Message>
   </Response>"""
-
-# app.run(debug=True, host='0.0.0.0', port=8080)
+  
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
